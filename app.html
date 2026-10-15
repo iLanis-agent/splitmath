@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split Math - app</title>
+<link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css">
+<style>
+  :root { --accent: #6a3a5a; }
+  h1 { color: var(--accent); margin-bottom: 0.2em; }
+  .tag { color: var(--accent); font-style: italic; }
+  .card { border: 1px solid #ddd; border-left: 4px solid var(--accent); padding: 1em 1.2em; margin: 1.2em 0; border-radius: 4px; }
+  .big { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-top: 0.8em; }
+  .err { color: #b00; font-weight: 700; }
+  label { display: block; margin-top: 0.6em; font-size: 0.9em; }
+  input, select { max-width: 12em; }
+  .foot { margin-top: 2.5em; font-size: 0.85em; color: #777; }
+</style>
+</head>
+<body>
+<h1>Split Math</h1>
+<p class="tag">Tonnage truth, cycle truth and circuit truth - labeled norms, honest arithmetic.</p>
+
+<div class="card">
+  <h3>The tonnage truth</h3>
+  <label for="t-diam">Round diameter (inches)</label>
+  <input id="t-diam" type="number" step="any" value="16">
+  <label for="t-factor">Tons per inch (0.5 seasoned pine, 1 oak, 1.5 green knotty)</label>
+  <input id="t-factor" type="number" step="any" value="1">
+  <label for="t-rating">Tonnage on the box</label>
+  <input id="t-rating" type="number" step="any" value="22">
+  <p class="big" id="t-out"></p>
+</div>
+
+<div class="card">
+  <h3>The cycle truth</h3>
+  <label for="c-sticker">Sticker cycle time (seconds)</label>
+  <input id="c-sticker" type="number" step="any" value="13">
+  <p class="big" id="c-out"></p>
+</div>
+
+<div class="card">
+  <h3>The circuit truth</h3>
+  <label for="e-amps">Circuit amps (the wall outlet)</label>
+  <input id="e-amps" type="number" step="any" value="15">
+  <label for="e-hp">Horsepower on the sticker</label>
+  <input id="e-hp" type="number" step="any" value="2">
+  <p class="big" id="e-out"></p>
+</div>
+
+<p class="foot">The tons-per-inch figures, the 1.4 load factor and the 0.8 continuous-load derate are labeled norms - the arithmetic is honest, and the maul keeps the honest ledger.</p>
+
+<script src="engine.js"></script>
+<script>
+function g(id){ return document.getElementById(id); }
+function v(id){ var n = parseFloat(g(id).value); return isNaN(n) ? NaN : n; }
+function show(id, s, bad){ var el = g(id); el.textContent = s; el.className = bad ? "err big" : "big"; }
+
+function runTonnage(){
+  var args = [v("t-diam"), v("t-factor"), v("t-rating")];
+  var r = SplitMath.tonnagePlan.apply(null, args);
+  if (r.error) return show("t-out", r.error, true);
+  show("t-out", SplitMath.renderTonnage.apply(null, [r].concat(args)), false);
+}
+function runCycle(){
+  var args = [v("c-sticker")];
+  var r = SplitMath.cyclePlan.apply(null, args);
+  if (r.error) return show("c-out", r.error, true);
+  show("c-out", SplitMath.renderCycle.apply(null, [r].concat(args)), false);
+}
+function runCircuit(){
+  var args = [v("e-amps"), v("e-hp")];
+  var r = SplitMath.circuitPlan.apply(null, args);
+  if (r.error) return show("e-out", r.error, true);
+  show("e-out", SplitMath.renderCircuit.apply(null, [r].concat(args)), false);
+}
+["t-diam", "t-factor", "t-rating"].forEach(function(id){ g(id).addEventListener("input", runTonnage); });
+["c-sticker"].forEach(function(id){ g(id).addEventListener("input", runCycle); });
+["e-amps", "e-hp"].forEach(function(id){ g(id).addEventListener("input", runCircuit); });
+runTonnage(); runCycle(); runCircuit();
+</script>
+</body>
+</html>
